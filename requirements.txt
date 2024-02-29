@@ -1,0 +1,3 @@
+streamlit==1.0.0  # La version de Streamlit que vous utilisez
+pandas==1.3.3      # La version de Pandas que vous utilisez
+openpyxl==3.0.9    # La version de openpyxl que vous utilisez
