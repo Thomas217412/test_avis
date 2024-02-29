@@ -69,7 +69,7 @@ if st.button("Envoyer"):
             df = pd.DataFrame(columns=["Nom", "Prénom", "Email", "Clarté"])
         
         # Ajouter une nouvelle ligne avec les données du feedback
-        df = df.append(feedback, ignore_index=True)
+        df = pd.concat([df, pd.DataFrame([feedback])], ignore_index=True)
         
         # Exporter le DataFrame vers un fichier Excel
         df.to_excel(excel_file, index=False)
