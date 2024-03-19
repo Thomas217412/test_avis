@@ -2,13 +2,21 @@ import streamlit as st
 import re
 import pandas as pd
 import gspread
-from oauth2client.service_account import ServiceAccountCredentials
+from google.auth import default, credentials
+from google.auth.transport.requests import Request
+from gspread.exceptions import APIError
 
 # Configuration des informations de l'API Google Sheets
-scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-creds = ServiceAccountCredentials.from_json_keyfile_name('path/to/your/credentials.json', scope)
+creds, _ = default()
+
+# Authentifier et ouvrir la feuille de calcul
 client = gspread.authorize(creds)
-sheet = client.open('Nom de votre feuille de calcul').sheet1  # Remplacez 'Nom de votre feuille de calcul' par le nom de votre feuille
+sheet_name = "Nom de votre feuille de calcul"  # Remplacez par le nom de votre feuille
+try:
+    sheet = client.open(sheet_name).sheet1
+except APIError:
+    st.error("Erreur: Impossible d'ouvrir la feuille de calcul. Vérifiez le nom de la feuille.")
+    st.stop()
 
 st.header(":mailbox: Donnez votre avis sur le livrable!")
 
@@ -65,6 +73,9 @@ if st.button("Envoyer"):
         
         # Ajouter une nouvelle ligne avec les données du feedback dans la feuille de calcul Google Sheets
         feedback_row = [feedback["Nom"], feedback["Prénom"], feedback["Email"], feedback["Clarté"], feedback["Commentaires"]]
-        sheet.append_row(feedback_row)
+        try:
+            sheet.append_row(feedback_row)
+        except APIError as e:
+            st.error(f"Erreur lors de l'écriture des données dans Google Sheets: {e}")
     else:
         st.error("Veuillez remplir tous les champs avec des valeurs valides.")
