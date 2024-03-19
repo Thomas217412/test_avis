@@ -1,7 +1,14 @@
 import streamlit as st
 import re
 import pandas as pd
-import os
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
+
+# Configuration des informations de l'API Google Sheets
+scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
+creds = ServiceAccountCredentials.from_json_keyfile_name('path/to/your/credentials.json', scope)
+client = gspread.authorize(creds)
+sheet = client.open('Nom de votre feuille de calcul').sheet1  # Remplacez 'Nom de votre feuille de calcul' par le nom de votre feuille
 
 st.header(":mailbox: Donnez votre avis sur le livrable!")
 
@@ -52,26 +59,12 @@ if st.button("Envoyer"):
             "Email": email.strip(),
             "Clarté": clarity_rating,
             "Commentaires" : Commentaires
-
         }
         # Placeholder for further processing (e.g., saving to database, sending email)
         st.success("Feedback envoyé avec succès !")
         
-        # Nom du fichier Excel
-        excel_file = "feedback.xlsx"
-        
-        # Vérifie si le fichier Excel existe déjà
-        if os.path.exists(excel_file):
-            # Charger le fichier Excel existant
-            df = pd.read_excel(excel_file)
-        else:
-            # Créer un DataFrame vide s'il n'existe pas
-            df = pd.DataFrame(columns=["Nom", "Prénom", "Email", "Clarté"])
-        
-        # Ajouter une nouvelle ligne avec les données du feedback
-        df = pd.concat([df, pd.DataFrame([feedback])], ignore_index=True)
-        
-        # Exporter le DataFrame vers un fichier Excel
-        df.to_excel(excel_file, index=False)
+        # Ajouter une nouvelle ligne avec les données du feedback dans la feuille de calcul Google Sheets
+        feedback_row = [feedback["Nom"], feedback["Prénom"], feedback["Email"], feedback["Clarté"], feedback["Commentaires"]]
+        sheet.append_row(feedback_row)
     else:
         st.error("Veuillez remplir tous les champs avec des valeurs valides.")
